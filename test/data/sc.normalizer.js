@@ -6,13 +6,13 @@ describe("shortcuts - normalizer", function () {
 	/**
 	 * Create fake event object.
 	 * @param {number} code
-	 * @param {boolean} ctrl
-	 * @param {boolean} alt
-	 * @param {boolean} shift
-	 * @returns {{ctrlKey: boolean, altKey: boolean, shiftKey: boolean, keyCode: number}}
+	 * @param {boolean=} ctrl
+	 * @param {boolean=} alt
+	 * @param {boolean=} shift
+	 * @returns {Event}
 	 */
 	function event(code, ctrl, alt, shift) {
-		return {
+		return /** @type {Event}*/{
 			ctrlKey: ctrl,
 			altKey: alt,
 			shiftKey: shift,

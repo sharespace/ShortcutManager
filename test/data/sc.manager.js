@@ -15,13 +15,13 @@ describe("shortcuts - manager", function () {
 	/**
 	 * Create fake event object.
 	 * @param {number} code
-	 * @param {boolean} ctrl
-	 * @param {boolean} alt
-	 * @param {boolean} shift
-	 * @returns {{ctrlKey: boolean, altKey: boolean, shiftKey: boolean, keyCode: number}}
+	 * @param {boolean=} ctrl
+	 * @param {boolean=} alt
+	 * @param {boolean=} shift
+	 * @returns {Event}
 	 */
 	function event(code, ctrl, alt, shift) {
-		return {
+		return /** @type {Event}*/{
 			ctrlKey: ctrl,
 			altKey: alt,
 			shiftKey: shift,
@@ -31,8 +31,8 @@ describe("shortcuts - manager", function () {
 
 	/**
 	 * Simulate fire event
-	 * @param {ShortcutManager} manager
-	 * @param {event} shortcut
+	 * @param {*} manager
+	 * @param {Event} shortcut
 	 */
 	function simulateFire(manager, shortcut) {
 		manager.handleByKeyEvent(shortcut);
@@ -40,9 +40,13 @@ describe("shortcuts - manager", function () {
 
 	beforeEach(function () {
 		//reset calls for spy functions
+		/** @namespace handlers.one */
 		handlers.one.calls.reset();
+		/** @namespace handlers.two */
 		handlers.two.calls.reset();
+		/** @namespace handlers.three */
 		handlers.three.calls.reset();
+		/** @namespace handlers.four */
 		handlers.four.calls.reset();
 
 		//remove all shortcuts (called on static instance)
@@ -63,7 +67,7 @@ describe("shortcuts - manager", function () {
 		expect(handlers.one).not.toHaveBeenCalled();
 	});
 
-	it("unregister and fire shortcut", function () {
+	it("un register and fire shortcut", function () {
 		shortcutManagerOne.on("Ctrl+B", handlers.one);
 		shortcutManagerOne.remove("Ctrl+B", handlers.one);
 
@@ -200,8 +204,8 @@ describe("shortcuts - manager", function () {
 	});
 
 	it("call handler order without default", function () {
-		var handlerOne = jasmine.createSpy('handlerOne'),
-			handlerTwo = jasmine.createSpy('handlertwo'),
+		var handlerOne = /** @type {Function}*/jasmine.createSpy("handlerOne"),
+			handlerTwo = /** @type {Function}*/jasmine.createSpy("handlertwo"),
 			order = [];
 
 		handlerOne.and.callFake(function () {
@@ -222,9 +226,9 @@ describe("shortcuts - manager", function () {
 	});
 
 	it("call handler order with default", function () {
-		var handlerOne = jasmine.createSpy('handlerOne'),
-			handlerTwo = jasmine.createSpy('handlertwo'),
-			handlerThree = jasmine.createSpy('handlerthree'),
+		var handlerOne = /** @type {Function}*/jasmine.createSpy("handlerOne"),
+			handlerTwo = /** @type {Function}*/jasmine.createSpy("handlertwo"),
+			handlerThree = /** @type {Function}*/jasmine.createSpy("handlerthree"),
 			order = [];
 
 		handlerOne.and.callFake(function () {
@@ -251,9 +255,9 @@ describe("shortcuts - manager", function () {
 	});
 
 	it("stop call handler queue when handler returns true", function () {
-		var handlerOne = jasmine.createSpy('handlerOne'),
-			handlerTwo = jasmine.createSpy('handlertwo'),
-			handlerThree = jasmine.createSpy('handlerthree');
+		var handlerOne = /** @type {Function}*/jasmine.createSpy("handlerOne"),
+			handlerTwo = /** @type {Function}*/jasmine.createSpy("handlertwo"),
+			handlerThree = /** @type {Function}*/jasmine.createSpy("handlerthree");
 
 		handlerTwo.and.callFake(function () {
 			return true;

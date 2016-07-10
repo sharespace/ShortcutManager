@@ -2,8 +2,7 @@
 SC.Normalizer = (function (SC, p) {
 	"use strict";
 
-	var Normalizer,
-		orderMap = {
+	var orderMap = {
 			ctrl: 0,
 			alt: 1,
 			shift: 2
@@ -66,15 +65,14 @@ SC.Normalizer = (function (SC, p) {
 	 * Shortcut string builder.
 	 * @constructor
 	 */
-	Normalizer = function () {
-
-	};
+	function Normalizer() {
+	}
 
 	p = Normalizer.prototype;
 
 	/**
 	 * Return normalized shortcut from event.
-	 * @param {event} event
+	 * @param {Event} event
 	 * @returns {string}
 	 */
 	p.fromEvent = function (event) {

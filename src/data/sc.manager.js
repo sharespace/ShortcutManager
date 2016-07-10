@@ -2,31 +2,31 @@
 SC.Manager = (function (SC, p) {
 	"use strict";
 
-	var Manager,
-		store = new SC.Store(),
+	var store = new SC.Store(),
 		normalizer = new SC.Normalizer();
 
 	/**
 	 * @type {Window}
 	 * @public
 	 */
-	SC._default = window;
+	SC.scdefault = window;
 
 	/**
 	 * Manager
 	 * @param {boolean} isStatic
 	 * @constructor
 	 */
-	Manager = function (isStatic) {
+	function Manager(isStatic) {
 		/** @type {Object}*/
-		this.context = SC._default;
+		this.context = SC.scdefault;
 		/** @type {boolean}*/
 		this.isStatic = isStatic || false;
-	};
+	}
 
 	p = Manager.prototype;
 
 	/**
+	 * @public
 	 * Create new ShortcutManager
 	 * @param {Object} context
 	 * @returns {Manager}
@@ -36,11 +36,13 @@ SC.Manager = (function (SC, p) {
 	};
 
 	/**
+	 * @public
 	 * Set context
 	 * @param {Object} context
 	 * @returns {Manager}
 	 */
 	p.in = function (context) {
+		//noinspection JSUnresolvedVariable
 		if (this.isStatic) {
 			throw "ShortcutManager: Can not change context on static method. Use ShortcutManager.create() with right context.";
 		}
@@ -51,10 +53,11 @@ SC.Manager = (function (SC, p) {
 	};
 
 	/**
+	 * @public
 	 * Register new shortcut
 	 * @param {string} shortcut
 	 * @param {function} handler
-	 * @param {boolean} isDefault indicates default handler (can be overridden)
+	 * @param {boolean=} isDefault indicates default handler (can be overridden)
 	 */
 	p.on = function (shortcut, handler, isDefault) {
 		var normalized = normalizer.normalize(shortcut);
@@ -63,16 +66,18 @@ SC.Manager = (function (SC, p) {
 	};
 
 	/**
+	 * @public
 	 * Removes handlers by context, shortcut or by handler
-	 * @param {string} shortcut
-	 * @param {function} handler
+	 * @param {string=} shortcut
+	 * @param {function=} handler
 	 */
 	p.remove = function (shortcut, handler) {
 		store.remove(this.context, normalizer.normalize(shortcut), handler);
 	};
 
 	/**
-	 *
+	 * @public
+	 * Handle by key event
 	 * @param {Event} event
 	 * @returns {boolean} isHandled
 	 */
@@ -96,6 +101,10 @@ SC.Manager = (function (SC, p) {
 		return false;
 	};
 
+	/**
+	 * @public
+	 * Destroy
+	 */
 	p.destroy = function () {
 		this.remove();
 	};

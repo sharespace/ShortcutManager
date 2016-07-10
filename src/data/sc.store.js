@@ -2,9 +2,6 @@
 SC.Store = (function (SC, p) {
 	"use strict";
 
-	var Store,
-		HandlerRecord;
-
 	/**
 	 * Shortcut record create
 	 * @param {Object} store
@@ -42,13 +39,15 @@ SC.Store = (function (SC, p) {
 	 * Get handler.
 	 * @param {Object} store
 	 * @param {string} shortcut
-	 * @returns {function}
+	 * @returns {Array.<function>}
 	 */
 	function getHandlers(store, shortcut) {
 		var handlers = store[shortcut];
 
 		if (handlers) {
-			return handlers.map(function (item) { return item.handler; });
+			return handlers.map(function (item) {
+				return item.handler;
+			});
 		}
 
 		return null;
@@ -67,7 +66,7 @@ SC.Store = (function (SC, p) {
 			record = getRecord(store, shortcut),
 			length = record.length;
 
-		if (context === SC._default) {
+		if (context === SC.scdefault) {
 			record.length = 0;
 		} else {
 			for (i = length - 1; i >= 0; i--) {
@@ -93,7 +92,7 @@ SC.Store = (function (SC, p) {
 		var i,
 			key,
 			handlerRecords,
-			isDefault = context === SC._default;
+			isDefault = context === SC.scdefault;
 
 		for (key in store) {
 			if (store.hasOwnProperty(key)) {
@@ -111,35 +110,35 @@ SC.Store = (function (SC, p) {
 	}
 
 	/**
-	 * Creates new store.
-	 * @constructor
-	 */
-	Store = function () {
-		//noinspection JSValidateJSDoc
-		/** @type {Object.<string, Array.<HandlerRecord>>} */
-		this.store = {};
-	};
-
-	//shortcut
-	p = Store.prototype;
-
-	/**
 	 * Handlers holder.
 	 * @param {Object} context
 	 * @param {function} handler
 	 * @param {boolean} isDefault
 	 * @constructor
 	 */
-	HandlerRecord = function (context, handler, isDefault) {
+	function HandlerRecord(context, handler, isDefault) {
 		/** @type {boolean} */
 		this.isDefault = isDefault || false;
 		/** @type {Object} */
 		this.context = context;
 		/** @type {function} */
 		this.handler = handler;
-	};
+	}
 
 	/**
+	 * Creates new store.
+	 * @constructor
+	 */
+	function Store() {
+		/** @type {Object.<string, Array.<HandlerRecord>>} */
+		this.store = {};
+	}
+
+	//shortcut
+	p = Store.prototype;
+
+	/**
+	 * @public
 	 * Save.
 	 * @param {string} shortcut
 	 * @param {Object} context
@@ -147,7 +146,9 @@ SC.Store = (function (SC, p) {
 	 * @param {boolean} isDefault
 	 */
 	p.save = function (shortcut, context, handler, isDefault) {
-		var handlers = getRecord(this.store, shortcut),
+		//noinspection JSUnresolvedVariable
+		var store = this.store,
+			handlers = getRecord(store, shortcut),
 			hasDefaultHandler = hasDefault(handlers),
 			handlerRecord = new HandlerRecord(context, handler, isDefault);
 
@@ -163,25 +164,31 @@ SC.Store = (function (SC, p) {
 	};
 
 	/**
-	 * get handler for given shortcut
+	 * @public
+	 * Get handler for given shortcut
 	 * @param {string} shortcut
-	 * @returns {function}
+	 * @returns {Array.<function>}
 	 */
 	p.get = function (shortcut) {
+		//noinspection JSUnresolvedVariable
 		return getHandlers(this.store, shortcut);
 	};
 
 	/**
+	 * @public
 	 * Removes all handlers assigned to given context or removes only short
 	 * @param {Object} context
 	 * @param {string} shortcut
 	 * @param {function} handler
 	 */
 	p.remove = function (context, shortcut, handler) {
+		//noinspection JSUnresolvedVariable
+		var store = this.store;
+
 		if (shortcut !== undefined && shortcut !== null) {
-			removeByShortcut(this.store, context, shortcut, handler);
+			removeByShortcut(store, context, shortcut, handler);
 		} else {
-			removeByContext(this.store, context);
+			removeByContext(store, context);
 		}
 	};
 
