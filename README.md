@@ -18,7 +18,7 @@ Run command `npm install`
 
 MIT License
 
-Copyright (c) 2015 Stanislav Hacker
+Copyright (c) 2015 Petr Jelínek, Stanislav Hacker
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
