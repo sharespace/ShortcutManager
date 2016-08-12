@@ -393,6 +393,26 @@ SC.Manager = (function (SC, p) {
 
 	/**
 	 * @public
+	 * Normalize shortcut to string from KeyboardEvent
+	 * @param {KeyboardEvent} event
+	 * @returns {string}
+	 */
+	p.normalizeFromEvent = function (event){
+		return normalizer.fromEvent(event);
+	};
+
+	/**
+	 * @public
+	 * Normalize shortcut to string from KeyboardEvent
+	 * @param {string} shortcut
+	 * @returns {string}
+	 */
+	p.normalize = function (shortcut){
+		return normalizer.normalize(shortcut);
+	};
+
+	/**
+	 * @public
 	 * Removes handlers by context, shortcut or by handler
 	 * @param {string=} shortcut
 	 * @param {function=} handler
