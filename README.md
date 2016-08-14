@@ -11,7 +11,10 @@ Download and install [NodeJs](https://nodejs.org/en/)
 
 Run command `npm install`
 
+### Test status on CodeShip
+![CodeShip status](https://codeship.com/projects/2f6e5400-446e-0134-4e35-4ed1b3e90ffc/status?branch=master "CodeShip status")
 
+[CodeShip Continuous integration project](https://codeship.com/projects/168461)
 
 
 # Licence
