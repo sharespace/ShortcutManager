@@ -198,7 +198,8 @@ SC.Store = (function (SC, p) {
 SC.Normalizer = (function (SC, p) {
 	"use strict";
 
-	var orderMap = {
+	var plus = "+",
+		orderMap = {
 			ctrl: 0,
 			alt: 1,
 			shift: 2
@@ -240,9 +241,9 @@ SC.Normalizer = (function (SC, p) {
 			187: "+",
 			189: "-"
 		},
-		ignoreShift = [
-			187 // "+" is made with shift by nature (shift+"=")
-		];
+		ignoreShift = {
+			187: "+" // "+" is made with shift by nature (shift+"=")
+		};
 
 	/**
 	 * Returns new order for given part.
@@ -270,7 +271,7 @@ SC.Normalizer = (function (SC, p) {
 	 * @return {boolean}
 	 */
 	function shiftIgnoredForKey(code) {
-		return ignoreShift.indexOf(code) !== -1;
+		return Boolean(ignoreShift[code]);
 	}
 
 	/**
@@ -291,10 +292,11 @@ SC.Normalizer = (function (SC, p) {
 		var shortcut,
 			shiftMakeSense = !shiftIgnoredForKey(event.keyCode);
 
-
+		//determine shortcut
 		shortcut = event.ctrlKey ? "ctrl+" : "";
 		shortcut += event.altKey ? "alt+" : "";
 		shortcut += event.shiftKey && shiftMakeSense ? "shift+" : "";
+		//get string from key code
 		shortcut += getStringFromCode(event.keyCode);
 
 		return shortcut;
@@ -312,36 +314,34 @@ SC.Normalizer = (function (SC, p) {
 			result = [],
 			others = [];
 
+		//no shortcut defined
 		if (shortcut === undefined || shortcut === null) {
 			return shortcut;
 		}
-
-		if (shortcut === "+") {
-			return "+";
+		// no splitting of exactly "+"
+		if (shortcut === plus) {
+			return plus;
 		}
-
-		parts = shortcut.toLowerCase().split("+");
-
+		//split by +
+		parts = shortcut.toLowerCase().split(plus);
 		// build new array with ctrl/alt/shift sorted
 		for (i = 0; i < parts.length; i++) {
 			order = getOrder(parts[i]);
-
+			//not defined, add ti array
 			if (order !== undefined) {
 				result[order] = parts[i];
 			} else {
 				others.push(parts[i]);
 			}
 		}
-
 		//add other parts of shortcut
 		result = result.concat(others);
-
 		//remove empty
 		result = result.filter(function (val) {
 			return val;
 		});
-
-		return result.join("+");
+		//rejoin
+		return result.join(plus);
 	};
 
 	return Normalizer;
@@ -480,4 +480,4 @@ SC.Manager = (function (SC, p) {
 	return Manager;
 
 }(SC));;/*global SC*/
-var ShortcutManager = new SC.Manager(true);
+var ShortcutManager = new SC.Manager(true); //eslint-disable-line
