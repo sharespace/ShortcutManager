@@ -38,8 +38,15 @@ SC.Normalizer = (function (SC, p) {
 			122: "f11",
 			123: "f12",
 			144: "numlock",
-			145: "scrolllock"
-		};
+			145: "scrolllock",
+			107: "+",
+			109: "-",
+			187: "+",
+			189: "-"
+		},
+		ignoreShift = [
+			187 // "+" is made with shift by nature (shift+"=")
+		];
 
 	/**
 	 * Returns new order for given part.
@@ -62,6 +69,15 @@ SC.Normalizer = (function (SC, p) {
 	}
 
 	/**
+	 * Some shortcuts are made with shift by nature
+	 * @param {number} code
+	 * @return {boolean}
+	 */
+	function shiftIgnoredForKey(code) {
+		return ignoreShift.indexOf(code) !== -1;
+	}
+
+	/**
 	 * Shortcut string builder.
 	 * @constructor
 	 */
@@ -76,11 +92,13 @@ SC.Normalizer = (function (SC, p) {
 	 * @returns {string}
 	 */
 	p.fromEvent = function (event) {
-		var shortcut;
+		var shortcut,
+			shiftMakeSense = !shiftIgnoredForKey(event.keyCode);
+
 
 		shortcut = event.ctrlKey ? "ctrl+" : "";
 		shortcut += event.altKey ? "alt+" : "";
-		shortcut += event.shiftKey ? "shift+" : "";
+		shortcut += event.shiftKey && shiftMakeSense ? "shift+" : "";
 		shortcut += getStringFromCode(event.keyCode);
 
 		return shortcut;
@@ -100,6 +118,11 @@ SC.Normalizer = (function (SC, p) {
 
 		if (shortcut === undefined || shortcut === null) {
 			return shortcut;
+		}
+
+		// no splitting of exactly "+"
+		if (shortcut === "+") {
+			return "+";
 		}
 
 		parts = shortcut.toLowerCase().split("+");
