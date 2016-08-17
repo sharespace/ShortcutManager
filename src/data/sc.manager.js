@@ -3,7 +3,8 @@ SC.Manager = (function (SC, p) {
 	"use strict";
 
 	var store = new SC.Store(),
-		normalizer = new SC.Normalizer();
+		normalizer = new SC.Normalizer(),
+		debugMode = false;
 
 	/**
 	 * @type {Window}
@@ -63,6 +64,7 @@ SC.Manager = (function (SC, p) {
 		var normalized = normalizer.normalize(shortcut);
 
 		store.save(normalized, this.context, handler, isDefault);
+		debug("register " + shortcut);
 	};
 
 	/**
@@ -109,16 +111,34 @@ SC.Manager = (function (SC, p) {
 		if (normalized) {
 			handlers = store.get(normalized);
 
-			if (handlers) {
+			if (handlers && handlers.length) {
+				debug("trying to handle '" + normalized + "' shortcut,", "available handlers:");
 				for (i = handlers.length - 1; i >= 0; i--) {
 					if (handlers[i]()) {
+						debug("handler with index '" + i + "' handled shortcut, handler: ");
+						debug(handlers[i]);
 						return true;
 					}
+					debug("handler with index '" + i + "' returned false...trying next");
 				}
+				debug("there is no more handler to try, returning false");
+			} else {
+				debug("there is no handler for '" + normalized + "' shortcut");
 			}
 		}
-
 		return false;
+	};
+
+	/**
+	 * @public
+	 * @param {string|KeyboardEvent} shortcut
+	 * @returns {boolean} isExists
+	 */
+	p.isShortcutExists = function (shortcut) {
+		if (typeof shortcut === "object") {
+			shortcut = normalizer.fromEvent(shortcut);
+		}
+		return store.isShortcutExists(shortcut);
 	};
 
 	/**
@@ -128,6 +148,25 @@ SC.Manager = (function (SC, p) {
 	p.destroy = function () {
 		this.remove();
 	};
+
+    /**
+     * Set debug mode on / off
+     * @param {boolean} state
+     */
+	p.debugMode = function (state) {
+		debugMode = state;
+		console.info("ShortcutManager debug mode is set to " + (state ? "on" : "off"));
+	};
+
+	/**
+	 * simple debugger, print output if debug is enabled
+	 * @param {*} message
+	 */
+	function debug(message) {
+		if (debugMode) {
+			console.debug(message);
+		}
+	}
 
 	return Manager;
 

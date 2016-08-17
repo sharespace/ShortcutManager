@@ -11,7 +11,7 @@ SC.Normalizer = (function (SC, p) {
 		specialKeys = {
 			8: "backspace",
 			9: "tab",
-			13: "enter",
+			13: "return",
 			19: "pause",
 			20: "capslock",
 			27: "esc",
@@ -26,6 +26,7 @@ SC.Normalizer = (function (SC, p) {
 			40: "down",
 			45: "insert",
 			46: "delete",
+			111: "/",
 			112: "f1",
 			113: "f2",
 			114: "f3",
@@ -59,6 +60,15 @@ SC.Normalizer = (function (SC, p) {
 	}
 
 	/**
+	 * if code is numpad number, then covert it to simple number char code
+	 * @param {number} code
+	 * @returns {number}
+	 */
+	function fixNumpadNumbers(code) {
+		return code >= 96 && code <= 105 ? code - 48 : code;
+	}
+
+	/**
 	 * Returns string from given code.
 	 * @param {number} code
 	 * @returns {string}
@@ -66,6 +76,7 @@ SC.Normalizer = (function (SC, p) {
 	function getStringFromCode(code) {
 		var value = specialKeys[code];
 
+		code = fixNumpadNumbers(code);
 		return value ? value : String.fromCharCode(code).toLowerCase();
 	}
 

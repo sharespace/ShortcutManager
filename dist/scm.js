@@ -84,6 +84,18 @@ SC.Store = (function (SC, p) {
 	}
 
 	/**
+	 * @param {object} store
+	 * @param {string} shortcut
+	 */
+	function deleteIfEmpty(store, shortcut) {
+		var record = store[shortcut];
+
+		if (record && record.length === 0) {
+			delete store[shortcut];
+		}
+	}
+
+	/**
 	 * Removes all shortcuts by context
 	 * @param {object} store
 	 * @param {object} context
@@ -176,6 +188,16 @@ SC.Store = (function (SC, p) {
 
 	/**
 	 * @public
+	 * @param {string} shortcut
+	 * @returns {boolean} isExists
+	 */
+	p.isShortcutExists = function (shortcut) {
+		//noinspection JSUnresolvedVariable
+		return Boolean(this.store[shortcut]);
+	};
+
+	/**
+	 * @public
 	 * Removes all handlers assigned to given context or removes only short
 	 * @param {Object} context
 	 * @param {string} shortcut
@@ -190,6 +212,7 @@ SC.Store = (function (SC, p) {
 		} else {
 			removeByContext(store, context);
 		}
+		deleteIfEmpty(store, shortcut);
 	};
 
 	return Store;
@@ -207,7 +230,7 @@ SC.Normalizer = (function (SC, p) {
 		specialKeys = {
 			8: "backspace",
 			9: "tab",
-			13: "enter",
+			13: "return",
 			19: "pause",
 			20: "capslock",
 			27: "esc",
@@ -222,6 +245,7 @@ SC.Normalizer = (function (SC, p) {
 			40: "down",
 			45: "insert",
 			46: "delete",
+			111: "/",
 			112: "f1",
 			113: "f2",
 			114: "f3",
@@ -255,6 +279,15 @@ SC.Normalizer = (function (SC, p) {
 	}
 
 	/**
+	 * if code is numpad number, then covert it to simple number char code
+	 * @param {number} code
+	 * @returns {number}
+	 */
+	function fixNumpadNumbers(code) {
+		return code >= 96 && code <= 105 ? code - 48 : code;
+	}
+
+	/**
 	 * Returns string from given code.
 	 * @param {number} code
 	 * @returns {string}
@@ -262,6 +295,7 @@ SC.Normalizer = (function (SC, p) {
 	function getStringFromCode(code) {
 		var value = specialKeys[code];
 
+		code = fixNumpadNumbers(code);
 		return value ? value : String.fromCharCode(code).toLowerCase();
 	}
 
@@ -351,7 +385,8 @@ SC.Manager = (function (SC, p) {
 	"use strict";
 
 	var store = new SC.Store(),
-		normalizer = new SC.Normalizer();
+		normalizer = new SC.Normalizer(),
+		debugMode = false;
 
 	/**
 	 * @type {Window}
@@ -411,6 +446,7 @@ SC.Manager = (function (SC, p) {
 		var normalized = normalizer.normalize(shortcut);
 
 		store.save(normalized, this.context, handler, isDefault);
+		debug("register " + shortcut);
 	};
 
 	/**
@@ -457,16 +493,34 @@ SC.Manager = (function (SC, p) {
 		if (normalized) {
 			handlers = store.get(normalized);
 
-			if (handlers) {
+			if (handlers && handlers.length) {
+				debug("trying to handle '" + normalized + "' shortcut,", "available handlers:");
 				for (i = handlers.length - 1; i >= 0; i--) {
 					if (handlers[i]()) {
+						debug("handler with index '" + i + "' handled shortcut, handler: ");
+						debug(handlers[i]);
 						return true;
 					}
+					debug("handler with index '" + i + "' returned false...trying next");
 				}
+				debug("there is no more handler to try, returning false");
+			} else {
+				debug("there is no handler for '" + normalized + "' shortcut");
 			}
 		}
-
 		return false;
+	};
+
+	/**
+	 * @public
+	 * @param {string|KeyboardEvent} shortcut
+	 * @returns {boolean} isExists
+	 */
+	p.isShortcutExists = function (shortcut) {
+		if (typeof shortcut === "object") {
+			shortcut = normalizer.fromEvent(shortcut);
+		}
+		return store.isShortcutExists(shortcut);
 	};
 
 	/**
@@ -476,6 +530,25 @@ SC.Manager = (function (SC, p) {
 	p.destroy = function () {
 		this.remove();
 	};
+
+    /**
+     * Set debug mode on / off
+     * @param {boolean} state
+     */
+	p.debugMode = function (state) {
+		debugMode = state;
+		console.info("ShortcutManager debug mode is set to " + (state ? "on" : "off"));
+	};
+
+	/**
+	 * simple debugger, print output if debug is enabled
+	 * @param {*} message
+	 */
+	function debug(message) {
+		if (debugMode) {
+			console.debug(message);
+		}
+	}
 
 	return Manager;
 

@@ -84,6 +84,18 @@ SC.Store = (function (SC, p) {
 	}
 
 	/**
+	 * @param {object} store
+	 * @param {string} shortcut
+	 */
+	function deleteIfEmpty(store, shortcut) {
+		var record = store[shortcut];
+
+		if (record && record.length === 0) {
+			delete store[shortcut];
+		}
+	}
+
+	/**
 	 * Removes all shortcuts by context
 	 * @param {object} store
 	 * @param {object} context
@@ -176,6 +188,16 @@ SC.Store = (function (SC, p) {
 
 	/**
 	 * @public
+	 * @param {string} shortcut
+	 * @returns {boolean} isExists
+	 */
+	p.isShortcutExists = function (shortcut) {
+		//noinspection JSUnresolvedVariable
+		return Boolean(this.store[shortcut]);
+	};
+
+	/**
+	 * @public
 	 * Removes all handlers assigned to given context or removes only short
 	 * @param {Object} context
 	 * @param {string} shortcut
@@ -190,6 +212,7 @@ SC.Store = (function (SC, p) {
 		} else {
 			removeByContext(store, context);
 		}
+		deleteIfEmpty(store, shortcut);
 	};
 
 	return Store;
