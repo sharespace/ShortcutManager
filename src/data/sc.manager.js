@@ -47,9 +47,9 @@ SC.Manager = (function (SC, p) {
 		if (this.isStatic) {
 			throw "ShortcutManager: Can not change context on static method. Use ShortcutManager.create() with right context.";
 		}
-
+		//set new context
 		this.context = context;
-
+		//and return it
 		return this;
 	};
 
@@ -63,6 +63,7 @@ SC.Manager = (function (SC, p) {
 	p.on = function (shortcut, handler, isDefault) {
 		var normalized = normalizer.normalize(shortcut);
 
+		//save data into store
 		store.save(normalized, this.context, handler, isDefault);
 		debug("register " + shortcut);
 	};
@@ -106,24 +107,36 @@ SC.Manager = (function (SC, p) {
 	p.handleByKeyEvent = function (event) {
 		var normalized = normalizer.fromEvent(event),
 			handlers,
+			handled,
 			i;
 
 		if (normalized) {
+			//get handlers from store
 			handlers = store.get(normalized);
-
+			//handlers exists
 			if (handlers && handlers.length) {
-				debug("trying to handle '" + normalized + "' shortcut,", "available handlers:");
+				//debug mode message
+				debug("ShortcutManage: Trying to handle '" + normalized + "' shortcut,", "available handlers:");
+				//iterate all handlers
 				for (i = handlers.length - 1; i >= 0; i--) {
-					if (handlers[i]()) {
-						debug("handler with index '" + i + "' handled shortcut, handler: ");
+					//run handler on index
+					handled = handlers[i]();
+					//handled
+					if (handled) {
+						//debug mode message and handler
+						debug("ShortcutManage: Handler with index '" + i + "' handled shortcut, handler: ");
 						debug(handlers[i]);
+						//stop handling
 						return true;
 					}
-					debug("handler with index '" + i + "' returned false...trying next");
+					//debug mode message for next
+					debug("ShortcutManage: Handler with index '" + i + "' returned false...trying next");
 				}
-				debug("there is no more handler to try, returning false");
+				//debug mode message and stop
+				debug("ShortcutManage: There is no more handler to try, returning false");
 			} else {
-				debug("there is no handler for '" + normalized + "' shortcut");
+				//debug mode message for no handlers
+				debug("ShortcutManage: There is no handler for '" + normalized + "' shortcut");
 			}
 		}
 		return false;
@@ -135,9 +148,11 @@ SC.Manager = (function (SC, p) {
 	 * @returns {boolean} isExists
 	 */
 	p.isShortcutExists = function (shortcut) {
+		//shortcut is object, try get shortcut from event
 		if (typeof shortcut === "object") {
 			shortcut = normalizer.fromEvent(shortcut);
 		}
+		//check if exists
 		return store.isShortcutExists(shortcut);
 	};
 
@@ -149,10 +164,10 @@ SC.Manager = (function (SC, p) {
 		this.remove();
 	};
 
-    /**
-     * Set debug mode on / off
-     * @param {boolean} state
-     */
+	/**
+	 * Set debug mode on / off
+	 * @param {boolean} state
+	 */
 	p.debugMode = function (state) {
 		debugMode = state;
 		console.info("ShortcutManager debug mode is set to " + (state ? "on" : "off"));

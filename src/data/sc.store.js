@@ -11,14 +11,15 @@ SC.Store = (function (SC, p) {
 	function getRecord(store, shortcut) {
 		var data = store[shortcut];
 
+		//record not exists, create it
 		if (!data) {
 			data = [];
 			store[shortcut] = data;
 		}
+		//return
 		return data;
 	}
 
-	//noinspection JSValidateJSDoc
 	/**
 	 * find default handler
 	 * @param {Array.<HandlerRecord>} handlers
@@ -66,19 +67,22 @@ SC.Store = (function (SC, p) {
 			record = getRecord(store, shortcut),
 			length = record.length;
 
+		//default manager, set record as empty
 		if (context === SC.scdefault) {
 			record.length = 0;
-		} else {
-			for (i = length - 1; i >= 0; i--) {
-				handlerRecord = record[i];
-				//remove by context and handler
-				if (handlerRecord.context === context && handlerRecord.handler === handler) {
-					record.splice(i, 1);
-				}
-				//remove by context
-				if (!handler && handlerRecord.context === context) {
-					record.splice(i, 1);
-				}
+			return;
+
+		}
+		//iterate all
+		for (i = length - 1; i >= 0; i--) {
+			handlerRecord = record[i];
+			//remove by context and handler
+			if (handlerRecord.context === context && handlerRecord.handler === handler) {
+				record.splice(i, 1);
+			}
+			//remove by context
+			if (!handler && handlerRecord.context === context) {
+				record.splice(i, 1);
 			}
 		}
 	}
@@ -108,12 +112,16 @@ SC.Store = (function (SC, p) {
 
 		for (key in store) {
 			if (store.hasOwnProperty(key)) {
+				//get record
 				handlerRecords = store[key];
+				//iterate all record from end
 				for (i = handlerRecords.length - 1; i >= 0; i--) {
+					//check context or if default manager
 					if (handlerRecords[i].context === context || isDefault) {
 						handlerRecords.splice(i, 1);
 					}
 				}
+				//delete from store if empty
 				if (handlerRecords.length === 0) {
 					delete store[key];
 				}
@@ -165,14 +173,18 @@ SC.Store = (function (SC, p) {
 			handlerRecord = new HandlerRecord(context, handler, isDefault);
 
 		if (isDefault) {
+			//has nor default handler
 			if (!hasDefaultHandler) {
-				handlers.unshift(handlerRecord); //add to the start of handlers
-			} else {
-				throw "ShortcutManager: Can not add another default handler for shortcut " + shortcut + ".";
+				//add to the start of handlers
+				handlers.unshift(handlerRecord);
+				return;
 			}
-		} else {
-			handlers.push(handlerRecord);
+			//error for default handler
+			throw "ShortcutManager: Can not add another default handler for shortcut " + shortcut + ".";
+
 		}
+		//push next handler
+		handlers.push(handlerRecord);
 	};
 
 	/**
