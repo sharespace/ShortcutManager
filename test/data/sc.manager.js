@@ -35,7 +35,7 @@ describe("shortcuts - manager", function () {
 	 * @param {Event} shortcut
 	 */
 	function simulateFire(manager, shortcut) {
-		manager.handleByKeyEvent(shortcut);
+		manager.event(shortcut);
 	}
 
 	beforeEach(function () {

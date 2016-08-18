@@ -203,7 +203,7 @@ SC.Store = (function (SC, p) {
 	 * @param {string} shortcut
 	 * @returns {boolean} isExists
 	 */
-	p.isShortcutExists = function (shortcut) {
+	p.exists = function (shortcut) {
 		//noinspection JSUnresolvedVariable
 		return Boolean(this.store[shortcut]);
 	};

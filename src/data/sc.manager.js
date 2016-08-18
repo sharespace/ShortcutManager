@@ -71,20 +71,15 @@ SC.Manager = (function (SC, p) {
 	/**
 	 * @public
 	 * Normalize shortcut to string from KeyboardEvent
-	 * @param {KeyboardEvent} event
-	 * @returns {string}
-	 */
-	p.normalizeFromEvent = function (event){
-		return normalizer.fromEvent(event);
-	};
-
-	/**
-	 * @public
-	 * Normalize shortcut to string from KeyboardEvent
-	 * @param {string} shortcut
+	 * @param {string|KeyboardEvent} shortcut
 	 * @returns {string}
 	 */
 	p.normalize = function (shortcut){
+		//shortcut is object, try get shortcut from event
+		if (typeof shortcut === "object") {
+			return normalizer.fromEvent(shortcut);
+		}
+		//normalize from string
 		return normalizer.normalize(shortcut);
 	};
 
@@ -104,7 +99,7 @@ SC.Manager = (function (SC, p) {
 	 * @param {Event} event
 	 * @returns {boolean} isHandled
 	 */
-	p.handleByKeyEvent = function (event) {
+	p.event = function (event) {
 		var normalized = normalizer.fromEvent(event),
 			handlers,
 			handled,
@@ -147,13 +142,13 @@ SC.Manager = (function (SC, p) {
 	 * @param {string|KeyboardEvent} shortcut
 	 * @returns {boolean} isExists
 	 */
-	p.isShortcutExists = function (shortcut) {
+	p.exists = function (shortcut) {
 		//shortcut is object, try get shortcut from event
 		if (typeof shortcut === "object") {
 			shortcut = normalizer.fromEvent(shortcut);
 		}
 		//check if exists
-		return store.isShortcutExists(shortcut);
+		return store.exists(shortcut);
 	};
 
 	/**
@@ -165,6 +160,7 @@ SC.Manager = (function (SC, p) {
 	};
 
 	/**
+	 * @public
 	 * Set debug mode on / off
 	 * @param {boolean} state
 	 */

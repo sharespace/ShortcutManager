@@ -11,14 +11,15 @@ SC.Store = (function (SC, p) {
 	function getRecord(store, shortcut) {
 		var data = store[shortcut];
 
+		//record not exists, create it
 		if (!data) {
 			data = [];
 			store[shortcut] = data;
 		}
+		//return
 		return data;
 	}
 
-	//noinspection JSValidateJSDoc
 	/**
 	 * find default handler
 	 * @param {Array.<HandlerRecord>} handlers
@@ -66,19 +67,22 @@ SC.Store = (function (SC, p) {
 			record = getRecord(store, shortcut),
 			length = record.length;
 
+		//default manager, set record as empty
 		if (context === SC.scdefault) {
 			record.length = 0;
-		} else {
-			for (i = length - 1; i >= 0; i--) {
-				handlerRecord = record[i];
-				//remove by context and handler
-				if (handlerRecord.context === context && handlerRecord.handler === handler) {
-					record.splice(i, 1);
-				}
-				//remove by context
-				if (!handler && handlerRecord.context === context) {
-					record.splice(i, 1);
-				}
+			return;
+
+		}
+		//iterate all
+		for (i = length - 1; i >= 0; i--) {
+			handlerRecord = record[i];
+			//remove by context and handler
+			if (handlerRecord.context === context && handlerRecord.handler === handler) {
+				record.splice(i, 1);
+			}
+			//remove by context
+			if (!handler && handlerRecord.context === context) {
+				record.splice(i, 1);
 			}
 		}
 	}
@@ -108,12 +112,16 @@ SC.Store = (function (SC, p) {
 
 		for (key in store) {
 			if (store.hasOwnProperty(key)) {
+				//get record
 				handlerRecords = store[key];
+				//iterate all record from end
 				for (i = handlerRecords.length - 1; i >= 0; i--) {
+					//check context or if default manager
 					if (handlerRecords[i].context === context || isDefault) {
 						handlerRecords.splice(i, 1);
 					}
 				}
+				//delete from store if empty
 				if (handlerRecords.length === 0) {
 					delete store[key];
 				}
@@ -165,14 +173,18 @@ SC.Store = (function (SC, p) {
 			handlerRecord = new HandlerRecord(context, handler, isDefault);
 
 		if (isDefault) {
+			//has nor default handler
 			if (!hasDefaultHandler) {
-				handlers.unshift(handlerRecord); //add to the start of handlers
-			} else {
-				throw "ShortcutManager: Can not add another default handler for shortcut " + shortcut + ".";
+				//add to the start of handlers
+				handlers.unshift(handlerRecord);
+				return;
 			}
-		} else {
-			handlers.push(handlerRecord);
+			//error for default handler
+			throw "ShortcutManager: Can not add another default handler for shortcut " + shortcut + ".";
+
 		}
+		//push next handler
+		handlers.push(handlerRecord);
 	};
 
 	/**
@@ -191,7 +203,7 @@ SC.Store = (function (SC, p) {
 	 * @param {string} shortcut
 	 * @returns {boolean} isExists
 	 */
-	p.isShortcutExists = function (shortcut) {
+	p.exists = function (shortcut) {
 		//noinspection JSUnresolvedVariable
 		return Boolean(this.store[shortcut]);
 	};
@@ -429,9 +441,9 @@ SC.Manager = (function (SC, p) {
 		if (this.isStatic) {
 			throw "ShortcutManager: Can not change context on static method. Use ShortcutManager.create() with right context.";
 		}
-
+		//set new context
 		this.context = context;
-
+		//and return it
 		return this;
 	};
 
@@ -445,6 +457,7 @@ SC.Manager = (function (SC, p) {
 	p.on = function (shortcut, handler, isDefault) {
 		var normalized = normalizer.normalize(shortcut);
 
+		//save data into store
 		store.save(normalized, this.context, handler, isDefault);
 		debug("register " + shortcut);
 	};
@@ -452,20 +465,15 @@ SC.Manager = (function (SC, p) {
 	/**
 	 * @public
 	 * Normalize shortcut to string from KeyboardEvent
-	 * @param {KeyboardEvent} event
-	 * @returns {string}
-	 */
-	p.normalizeFromEvent = function (event){
-		return normalizer.fromEvent(event);
-	};
-
-	/**
-	 * @public
-	 * Normalize shortcut to string from KeyboardEvent
-	 * @param {string} shortcut
+	 * @param {string|KeyboardEvent} shortcut
 	 * @returns {string}
 	 */
 	p.normalize = function (shortcut){
+		//shortcut is object, try get shortcut from event
+		if (typeof shortcut === "object") {
+			return normalizer.fromEvent(shortcut);
+		}
+		//normalize from string
 		return normalizer.normalize(shortcut);
 	};
 
@@ -485,27 +493,39 @@ SC.Manager = (function (SC, p) {
 	 * @param {Event} event
 	 * @returns {boolean} isHandled
 	 */
-	p.handleByKeyEvent = function (event) {
+	p.event = function (event) {
 		var normalized = normalizer.fromEvent(event),
 			handlers,
+			handled,
 			i;
 
 		if (normalized) {
+			//get handlers from store
 			handlers = store.get(normalized);
-
+			//handlers exists
 			if (handlers && handlers.length) {
-				debug("trying to handle '" + normalized + "' shortcut,", "available handlers:");
+				//debug mode message
+				debug("ShortcutManage: Trying to handle '" + normalized + "' shortcut,", "available handlers:");
+				//iterate all handlers
 				for (i = handlers.length - 1; i >= 0; i--) {
-					if (handlers[i]()) {
-						debug("handler with index '" + i + "' handled shortcut, handler: ");
+					//run handler on index
+					handled = handlers[i]();
+					//handled
+					if (handled) {
+						//debug mode message and handler
+						debug("ShortcutManage: Handler with index '" + i + "' handled shortcut, handler: ");
 						debug(handlers[i]);
+						//stop handling
 						return true;
 					}
-					debug("handler with index '" + i + "' returned false...trying next");
+					//debug mode message for next
+					debug("ShortcutManage: Handler with index '" + i + "' returned false...trying next");
 				}
-				debug("there is no more handler to try, returning false");
+				//debug mode message and stop
+				debug("ShortcutManage: There is no more handler to try, returning false");
 			} else {
-				debug("there is no handler for '" + normalized + "' shortcut");
+				//debug mode message for no handlers
+				debug("ShortcutManage: There is no handler for '" + normalized + "' shortcut");
 			}
 		}
 		return false;
@@ -516,11 +536,13 @@ SC.Manager = (function (SC, p) {
 	 * @param {string|KeyboardEvent} shortcut
 	 * @returns {boolean} isExists
 	 */
-	p.isShortcutExists = function (shortcut) {
+	p.exists = function (shortcut) {
+		//shortcut is object, try get shortcut from event
 		if (typeof shortcut === "object") {
 			shortcut = normalizer.fromEvent(shortcut);
 		}
-		return store.isShortcutExists(shortcut);
+		//check if exists
+		return store.exists(shortcut);
 	};
 
 	/**
@@ -531,10 +553,11 @@ SC.Manager = (function (SC, p) {
 		this.remove();
 	};
 
-    /**
-     * Set debug mode on / off
-     * @param {boolean} state
-     */
+	/**
+	 * @public
+	 * Set debug mode on / off
+	 * @param {boolean} state
+	 */
 	p.debugMode = function (state) {
 		debugMode = state;
 		console.info("ShortcutManager debug mode is set to " + (state ? "on" : "off"));
