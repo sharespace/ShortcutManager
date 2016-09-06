@@ -111,7 +111,7 @@ SC.Manager = (function (SC, p) {
 			//handlers exists
 			if (handlers && handlers.length) {
 				//debug mode message
-				debug("ShortcutManage: Trying to handle '" + normalized + "' shortcut,", "available handlers:");
+				debug("ShortcutManager: Trying to handle '" + normalized + "' shortcut,", "available handlers:");
 				//iterate all handlers
 				for (i = handlers.length - 1; i >= 0; i--) {
 					//run handler on index
@@ -119,19 +119,19 @@ SC.Manager = (function (SC, p) {
 					//handled
 					if (handled) {
 						//debug mode message and handler
-						debug("ShortcutManage: Handler with index '" + i + "' handled shortcut, handler: ");
+						debug("ShortcutManager: Handler with index '" + i + "' handled shortcut, handler: ");
 						debug(handlers[i]);
 						//stop handling
 						return true;
 					}
 					//debug mode message for next
-					debug("ShortcutManage: Handler with index '" + i + "' returned false...trying next");
+					debug("ShortcutManager: Handler with index '" + i + "' returned false...trying next");
 				}
 				//debug mode message and stop
-				debug("ShortcutManage: There is no more handler to try, returning false");
+				debug("ShortcutManager: There is no more handler to try, returning false");
 			} else {
 				//debug mode message for no handlers
-				debug("ShortcutManage: There is no handler for '" + normalized + "' shortcut");
+				debug("ShortcutManager: There is no handler for '" + normalized + "' shortcut");
 			}
 		}
 		return false;
@@ -143,12 +143,27 @@ SC.Manager = (function (SC, p) {
 	 * @returns {boolean} isExists
 	 */
 	p.exists = function (shortcut) {
+		var result;
+
 		//shortcut is object, try get shortcut from event
 		if (typeof shortcut === "object") {
 			shortcut = normalizer.fromEvent(shortcut);
 		}
+		//shortcut is string, normalize it
+		if (typeof shortcut === "string") {
+			shortcut = normalizer.normalize(shortcut);
+		}
 		//check if exists
-		return store.exists(shortcut);
+		result = store.exists(shortcut);
+
+		//debug mode message for shortcut exists
+		if (result) {
+			debug("ShortcutManager: Shortcut '" + shortcut + "' is registered");
+		} else {
+			debug("ShortcutManager: Shortcut '" + shortcut + "' is not registered");
+		}
+
+		return result;
 	};
 
 	/**

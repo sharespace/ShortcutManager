@@ -273,4 +273,12 @@ describe("shortcuts - manager", function () {
 		expect(handlerTwo.calls.count()).toEqual(1);
 		expect(handlerThree.calls.count()).toEqual(1);
 	});
+
+	it("try if registered shortcut exists", function () {
+		shortcutManagerOne.on("Ctrl+B", handlers.one);
+
+		expect(shortcutManagerOne.exists("ctrl+b")).toBe(true); //already normalized
+		expect(shortcutManagerOne.exists("Ctrl+B")).toBe(true); //not normalized
+		expect(shortcutManagerOne.exists("Ctrl+C")).toBe(false);
+	});
 });
