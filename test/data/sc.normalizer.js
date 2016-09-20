@@ -41,5 +41,6 @@ describe("shortcuts - normalizer", function () {
 		expect(normalizer.fromEvent(event(189))).toBe("-");
 		expect(normalizer.fromEvent(event(188, true))).toBe("ctrl+,");
 		expect(normalizer.fromEvent(event(190, true))).toBe("ctrl+.");
+		expect(normalizer.fromEvent(event(191, true))).toBe("ctrl+/");
 	});
 });

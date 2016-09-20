@@ -277,7 +277,8 @@ SC.Normalizer = (function (SC, p) {
 			187: "+",
 			188: ",",
 			189: "-",
-			190: "."
+			190: ".",
+			191: "/"
 		},
 		ignoreShift = {
 			187: "+" // "+" is made with shift by nature (shift+"=")
