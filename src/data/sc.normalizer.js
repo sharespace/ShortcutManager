@@ -3,11 +3,17 @@ SC.Normalizer = (function (SC, p) {
 	"use strict";
 
 	var plus = "+",
+		//ordes of key (ctrl => alt => shift)
 		orderMap = {
 			ctrl: 0,
 			alt: 1,
 			shift: 2
 		},
+		//alias map for special keys
+		aliasMap = {
+			enter: "return"
+		},
+		//name keys
 		specialKeys = {
 			8: "backspace",
 			9: "tab",
@@ -126,8 +132,9 @@ SC.Normalizer = (function (SC, p) {
 	 * @returns {string}
 	 */
 	p.normalize = function (shortcut) {
-		var parts,
-			i,
+		var i,
+			part,
+			parts,
 			order,
 			result = [],
 			others = [];
@@ -149,7 +156,10 @@ SC.Normalizer = (function (SC, p) {
 			if (order !== undefined) {
 				result[order] = parts[i];
 			} else {
-				others.push(parts[i]);
+				//normalize names
+				part = normalizeNames(parts[i]);
+				//push
+				others.push(part);
 			}
 		}
 		//add other parts of shortcut
@@ -161,6 +171,15 @@ SC.Normalizer = (function (SC, p) {
 		//rejoin
 		return result.join(plus);
 	};
+
+	/**
+	 * Normalize name
+	 * @param {string} name
+	 * @returns {string}
+	 */
+	function normalizeNames(name) {
+		return aliasMap[name] || name;
+	}
 
 	return Normalizer;
 

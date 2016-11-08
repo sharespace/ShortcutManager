@@ -27,6 +27,8 @@ describe("shortcuts - normalizer", function () {
 		expect(normalizer.normalize("Alt+SHIFT+Ctrl+B")).toBe("ctrl+alt+shift+b");
 		expect(normalizer.normalize("+")).toBe("+");
 		expect(normalizer.normalize("-")).toBe("-");
+		expect(normalizer.normalize("Ctrl+Enter")).toBe("ctrl+return");
+		expect(normalizer.normalize("Ctrl+Return")).toBe("ctrl+return");
 	});
 
 	it("normalize from event object", function () {
