@@ -37,6 +37,7 @@ describe("shortcuts - normalizer", function () {
 		expect(normalizer.fromEvent(event(66, true))).toBe("ctrl+b");
 		expect(normalizer.fromEvent(event(32, true, true))).toBe("ctrl+alt+space");
 		expect(normalizer.fromEvent(event(32, true, true, true))).toBe("ctrl+alt+shift+space");
+		expect(normalizer.fromEvent(event(106))).toBe("*");
 		expect(normalizer.fromEvent(event(107))).toBe("+");
 		expect(normalizer.fromEvent(event(187, false, false, true))).toBe("+");
 		expect(normalizer.fromEvent(event(109))).toBe("-");
