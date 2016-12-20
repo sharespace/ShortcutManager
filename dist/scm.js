@@ -263,6 +263,7 @@ SC.Normalizer = (function (SC, p) {
 			40: "down",
 			45: "insert",
 			46: "delete",
+			106: "*",
 			111: "/",
 			112: "f1",
 			113: "f2",
