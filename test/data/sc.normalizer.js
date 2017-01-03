@@ -46,4 +46,8 @@ describe("shortcuts - normalizer", function () {
 		expect(normalizer.fromEvent(event(190, true))).toBe("ctrl+.");
 		expect(normalizer.fromEvent(event(191, true))).toBe("ctrl+/");
 	});
+
+	it("normalize shortcut regex string", function () {
+		expect(normalizer.normalize("Ctrl+[0..9]")).toBe("ctrl+[0..9]");
+	});
 });

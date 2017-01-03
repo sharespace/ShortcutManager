@@ -90,7 +90,10 @@ SC.Manager = (function (SC, p) {
 	 * @param {function=} handler
 	 */
 	p.remove = function (shortcut, handler) {
-		store.remove(this.context, normalizer.normalize(shortcut), handler);
+		var normalized = normalizer.normalize(shortcut);
+
+		store.remove(this.context, normalized, handler);
+		debug("remove " + shortcut);
 	};
 
 	/**
@@ -115,12 +118,12 @@ SC.Manager = (function (SC, p) {
 				//iterate all handlers
 				for (i = handlers.length - 1; i >= 0; i--) {
 					//run handler on index
-					handled = handlers[i]();
+					handled = handlers[i].handler(normalized, handlers[i].modifier);
 					//handled
 					if (handled) {
 						//debug mode message and handler
 						debug("ShortcutManager: Handler with index '" + i + "' handled shortcut, handler: ");
-						debug(handlers[i]);
+						debug(handlers[i].handler);
 						//stop handling
 						return true;
 					}

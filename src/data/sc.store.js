@@ -2,6 +2,10 @@
 SC.Store = (function (SC, p) {
 	"use strict";
 
+	//multikeys regex
+	var splitter = "..",
+		regex = /.*\+(\[([0-9]..[0-9])\])/g;
+
 	/**
 	 * Shortcut record create
 	 * @param {Object} store
@@ -40,18 +44,10 @@ SC.Store = (function (SC, p) {
 	 * Get handler.
 	 * @param {Object} store
 	 * @param {string} shortcut
-	 * @returns {Array.<function>}
+	 * @returns {Array.<HandlerRecord>}
 	 */
 	function getHandlers(store, shortcut) {
-		var handlers = store[shortcut];
-
-		if (handlers) {
-			return handlers.map(function (item) {
-				return item.handler;
-			});
-		}
-
-		return null;
+		return store[shortcut] || null;
 	}
 
 	/**
@@ -130,15 +126,106 @@ SC.Store = (function (SC, p) {
 	}
 
 	/**
-	 * Handlers holder.
+	 * Save shortcut
+	 * @param {*} store
+	 * @param {Array.<string>} shortcut
 	 * @param {Object} context
 	 * @param {function} handler
 	 * @param {boolean} isDefault
+	 */
+	function saveShortcut(store, shortcut, context, handler, isDefault) {
+		//noinspection JSUnresolvedVariable
+		var handlers = getRecord(store, shortcut[0]),
+			hasDefaultHandler = hasDefault(handlers),
+			handlerRecord = new HandlerRecord(context, handler, /** @type {number}*/shortcut[1], isDefault);
+
+		if (isDefault) {
+			//has nor default handler
+			if (!hasDefaultHandler) {
+				//add to the start of handlers
+				handlers.unshift(handlerRecord);
+				return;
+			}
+			//error for default handler
+			throw "ShortcutManager: Can not add another default handler for shortcut " + shortcut + ".";
+
+		}
+		//push next handler
+		handlers.push(handlerRecord);
+	}
+
+	/**
+	 * Remove shortcut
+	 * @param {*} store
+	 * @param {Array.<string>} shortcut
+	 * @param {Object} context
+	 * @param {function} handler
+	 */
+	function removeShortcut(store, shortcut, context, handler) {
+		//delete by shortcut
+		if (shortcut[0] !== undefined && shortcut[0] !== null) {
+			removeByShortcut(store, context, shortcut[0], handler);
+
+		//delete by context
+		} else {
+			removeByContext(store, context);
+		}
+		deleteIfEmpty(store, shortcut[0]);
+	}
+
+	/**
+	 * Resolve shortcuts
+	 * @param {string} shortcut
+	 * @return {Array.<Array.<string, number>>}
+	 */
+	function resolveShortcuts(shortcut) {
+		var i,
+			to,
+			data,
+			from,
+			range,
+			group,
+			shortcuts = [];
+
+		//variable shortcut
+		if (shortcut && shortcut.match(regex)) {
+			//get range from shortcut
+			data = regex.exec(shortcut);
+			group = data[1];
+			range = data[2].split(splitter);
+			//range
+			from = parseInt(range[0], 10);
+			to = parseInt(range[1], 10);
+			//iterate range
+			for (i = from; i <= to; i++) {
+				shortcuts.push([shortcut.replace(group, i), i]);
+			}
+			//error
+			if (shortcuts.length === 0) {
+				throw "Regex shortcut do not match any handler.";
+			}
+			//return
+			return shortcuts;
+		}
+		//add shortcut
+		shortcuts.push([shortcut || null, -1]);
+		//normal shortcut
+		return shortcuts;
+	}
+
+	/**
+	 * Handlers holder.
+	 * @param {Object} context
+	 * @param {function} handler
+	 * @param {number} modifier
+	 * @param {boolean} isDefault
 	 * @constructor
 	 */
-	function HandlerRecord(context, handler, isDefault) {
+	function HandlerRecord(context, handler, modifier, isDefault) {
 		/** @type {boolean} */
 		this.isDefault = isDefault || false;
+		/** @type {number}*/
+		this.modifier = modifier;
 		/** @type {Object} */
 		this.context = context;
 		/** @type {function} */
@@ -166,32 +253,19 @@ SC.Store = (function (SC, p) {
 	 * @param {boolean} isDefault
 	 */
 	p.save = function (shortcut, context, handler, isDefault) {
-		//noinspection JSUnresolvedVariable
-		var store = this.store,
-			handlers = getRecord(store, shortcut),
-			hasDefaultHandler = hasDefault(handlers),
-			handlerRecord = new HandlerRecord(context, handler, isDefault);
+		var i,
+			shortcuts = resolveShortcuts(shortcut);
 
-		if (isDefault) {
-			//has nor default handler
-			if (!hasDefaultHandler) {
-				//add to the start of handlers
-				handlers.unshift(handlerRecord);
-				return;
-			}
-			//error for default handler
-			throw "ShortcutManager: Can not add another default handler for shortcut " + shortcut + ".";
-
+		for (i = 0; i < shortcuts.length; i++) {
+			saveShortcut(this.store, shortcuts[i], context, handler, isDefault);
 		}
-		//push next handler
-		handlers.push(handlerRecord);
 	};
 
 	/**
 	 * @public
 	 * Get handler for given shortcut
 	 * @param {string} shortcut
-	 * @returns {Array.<function>}
+	 * @returns {Array.<HandlerRecord>}
 	 */
 	p.get = function (shortcut) {
 		//noinspection JSUnresolvedVariable
@@ -216,15 +290,12 @@ SC.Store = (function (SC, p) {
 	 * @param {function} handler
 	 */
 	p.remove = function (context, shortcut, handler) {
-		//noinspection JSUnresolvedVariable
-		var store = this.store;
+		var i,
+			shortcuts = resolveShortcuts(shortcut);
 
-		if (shortcut !== undefined && shortcut !== null) {
-			removeByShortcut(store, context, shortcut, handler);
-		} else {
-			removeByContext(store, context);
+		for (i = 0; i < shortcuts.length; i++) {
+			removeShortcut(this.store, shortcuts[i], context, handler);
 		}
-		deleteIfEmpty(store, shortcut);
 	};
 
 	return Store;
