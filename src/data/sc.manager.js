@@ -104,6 +104,7 @@ SC.Manager = (function (SC, p) {
 	 */
 	p.event = function (event) {
 		var normalized = normalizer.fromEvent(event),
+			handlerItem,
 			handlers,
 			handled,
 			i;
@@ -117,13 +118,15 @@ SC.Manager = (function (SC, p) {
 				debug("ShortcutManager: Trying to handle '" + normalized + "' shortcut,", "available handlers:");
 				//iterate all handlers
 				for (i = handlers.length - 1; i >= 0; i--) {
+					//handler item
+					handlerItem = handlers[i];
 					//run handler on index
-					handled = handlers[i].handler(normalized, handlers[i].modifier);
+					handled = handlerItem.handler(normalized, handlerItem.modifier, handlerItem.from);
 					//handled
 					if (handled) {
 						//debug mode message and handler
 						debug("ShortcutManager: Handler with index '" + i + "' handled shortcut, handler: ");
-						debug(handlers[i].handler);
+						debug(handlerItem.handler);
 						//stop handling
 						return true;
 					}

@@ -137,7 +137,7 @@ SC.Store = (function (SC, p) {
 		//noinspection JSUnresolvedVariable
 		var handlers = getRecord(store, shortcut[0]),
 			hasDefaultHandler = hasDefault(handlers),
-			handlerRecord = new HandlerRecord(context, handler, /** @type {number}*/shortcut[1], isDefault);
+			handlerRecord = new HandlerRecord(context, handler, /** @type {number}*/shortcut[1], /** @type {number}*/shortcut[2], isDefault);
 
 		if (isDefault) {
 			//has nor default handler
@@ -198,13 +198,17 @@ SC.Store = (function (SC, p) {
 			to = parseInt(range[1], 10);
 			//iterate range
 			for (i = from; i <= to; i++) {
-				shortcuts.push([shortcut.replace(group, i), i]);
+				shortcuts.push([shortcut.replace(group, i), i, from]);
+			}
+			//error
+			if (shortcuts.length === 0) {
+				throw "Regex shortcut do not match any handler.";
 			}
 			//return
 			return shortcuts;
 		}
 		//add shortcut
-		shortcuts.push([shortcut || null, -1]);
+		shortcuts.push([shortcut || null, -1, -1]);
 		//normal shortcut
 		return shortcuts;
 	}
@@ -214,12 +218,15 @@ SC.Store = (function (SC, p) {
 	 * @param {Object} context
 	 * @param {function} handler
 	 * @param {number} modifier
+	 * @param {number} from
 	 * @param {boolean} isDefault
 	 * @constructor
 	 */
-	function HandlerRecord(context, handler, modifier, isDefault) {
+	function HandlerRecord(context, handler, modifier, from, isDefault) {
 		/** @type {boolean} */
 		this.isDefault = isDefault || false;
+		/** @type {number}*/
+		this.from = from;
 		/** @type {number}*/
 		this.modifier = modifier;
 		/** @type {Object} */
@@ -588,6 +595,7 @@ SC.Manager = (function (SC, p) {
 	 */
 	p.event = function (event) {
 		var normalized = normalizer.fromEvent(event),
+			handlerItem,
 			handlers,
 			handled,
 			i;
@@ -601,13 +609,15 @@ SC.Manager = (function (SC, p) {
 				debug("ShortcutManager: Trying to handle '" + normalized + "' shortcut,", "available handlers:");
 				//iterate all handlers
 				for (i = handlers.length - 1; i >= 0; i--) {
+					//handler item
+					handlerItem = handlers[i];
 					//run handler on index
-					handled = handlers[i].handler(normalized, handlers[i].modifier);
+					handled = handlerItem.handler(normalized, handlerItem.modifier, handlerItem.from);
 					//handled
 					if (handled) {
 						//debug mode message and handler
 						debug("ShortcutManager: Handler with index '" + i + "' handled shortcut, handler: ");
-						debug(handlers[i].handler);
+						debug(handlerItem.handler);
 						//stop handling
 						return true;
 					}
