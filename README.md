@@ -53,18 +53,21 @@ You can turn on debug mode that is used for consoling some information about eve
 ### Shortcut formats
 
 ##### Single shortcuts
-- Ctrl+B
-- Ctrl+Space
-- Alt+Ctrl+B
-- Alt+SHIFT+Ctrl+B
-- '+'
-- Ctrl+Enter
-- Ctrl+Return
+- "Ctrl+B"
+- "Ctrl+Space"
+- "Alt+Ctrl+B"
+- "Alt+SHIFT+Ctrl+B"
+- "+"
+- "Ctrl+Enter"
+- "Ctrl+Return"
 
 ##### Dynamic shortcuts
-- Ctrl+[0..9]
-- Ctrl+Alt+[0..9]
+- "Ctrl+[0..9]"
+- "Ctrl+Alt+[0..9]"
 
+##### Multiple shortcuts
+- "Ctrl+C, Ctrl+D"
+- "Ctrl+C, Ctrl+Shift+[0..9]"
 
 ### How to use it
 

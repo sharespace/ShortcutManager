@@ -50,4 +50,13 @@ describe("shortcuts - normalizer", function () {
 	it("normalize shortcut regex string", function () {
 		expect(normalizer.normalize("Ctrl+[0..9]")).toBe("ctrl+[0..9]");
 	});
+
+	it("normalize multiple shortcut string", function () {
+		expect(normalizer.normalize("Ctrl+B, Ctrl+C")).toBe("ctrl+b, ctrl+c");
+		expect(normalizer.normalize("Alt+Ctrl+B, Alt+Shift+CTRL+X")).toBe("ctrl+alt+b, ctrl+alt+shift+x");
+		expect(normalizer.normalize("Alt+SHIFT+Ctrl+B")).toBe("ctrl+alt+shift+b");
+		expect(normalizer.normalize("+, -")).toBe("+, -");
+		expect(normalizer.normalize("Ctrl+Enter, Enter")).toBe("ctrl+return, return");
+	});
+
 });

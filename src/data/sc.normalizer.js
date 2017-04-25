@@ -3,6 +3,7 @@ SC.Normalizer = (function (SC, p) {
 	"use strict";
 
 	var plus = "+",
+		multiple = ", ",
 		//ordes of key (ctrl => alt => shift)
 		orderMap = {
 			ctrl: 0,
@@ -134,16 +135,35 @@ SC.Normalizer = (function (SC, p) {
 	 */
 	p.normalize = function (shortcut) {
 		var i,
+			shortcuts;
+
+		//no shortcut defined
+		if (shortcut === undefined || shortcut === null) {
+			return shortcut;
+		}
+		//split
+		shortcuts = shortcut.split(multiple);
+		//normalize one by one
+		for (i = 0; i < shortcuts.length; i++) {
+			shortcuts[i] = normalizeOne(shortcuts[i]);
+		}
+		//rejoin
+		return shortcuts.join(multiple);
+	};
+
+	/**
+	 * Normalize one
+	 * @param {string} shortcut
+	 * @return {string}
+	 */
+	function normalizeOne(shortcut) {
+		var i,
 			part,
 			parts,
 			order,
 			result = [],
 			others = [];
 
-		//no shortcut defined
-		if (shortcut === undefined || shortcut === null) {
-			return shortcut;
-		}
 		// no splitting of exactly "+"
 		if (shortcut === plus) {
 			return plus;
@@ -171,7 +191,7 @@ SC.Normalizer = (function (SC, p) {
 		});
 		//rejoin
 		return result.join(plus);
-	};
+	}
 
 	/**
 	 * Normalize name

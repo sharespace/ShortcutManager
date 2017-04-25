@@ -19,7 +19,7 @@
   },
   "scripts": {
     "run": "node index.js",
-    "test": "grunt test"
+    "test": "grunt jasmine"
   },
   "author": {
     "name": "Petr Jelínek",

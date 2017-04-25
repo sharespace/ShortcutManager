@@ -4,6 +4,7 @@ SC.Store = (function (SC, p) {
 
 	//multikeys regex
 	var splitter = "..",
+		multiple = ", ",
 		regex = /.*\+(\[([0-9]..[0-9])\])/g;
 
 	/**
@@ -180,6 +181,43 @@ SC.Store = (function (SC, p) {
 	 */
 	function resolveShortcuts(shortcut) {
 		var i,
+			item,
+			multipleShortcuts = resolveMultipleShortcut(shortcut),
+			shortcuts = /** @type {Array.<Array.<string, number>>}*/[];
+
+		//iterate multiple shortcuts
+		for (i = 0; i < multipleShortcuts.length; i++) {
+			//item
+			item = multipleShortcuts[i];
+			//variable shortcut
+			if (item && item.match(regex)) {
+				shortcuts = shortcuts.concat(resolveDynamicShortcuts(item));
+
+			//normal shortcut
+			} else {
+				shortcuts = shortcuts.concat(resolveSingleShortcut(item));
+			}
+		}
+		//shortcuts
+		return shortcuts;
+	}
+
+	/**
+	 * Resolve multiple shortcut
+	 * @param {string} shortcut
+	 * @return {Array.<string>}
+	 */
+	function resolveMultipleShortcut(shortcut) {
+		return shortcut ? shortcut.split(multiple) : [null];
+	}
+
+	/**
+	 * Resolve dynamic shortcuts
+	 * @param {string} shortcut
+	 * @return {Array.<Array.<string, number>>}
+	 */
+	function resolveDynamicShortcuts(shortcut) {
+		var i,
 			to,
 			data,
 			from,
@@ -187,26 +225,33 @@ SC.Store = (function (SC, p) {
 			group,
 			shortcuts = [];
 
-		//variable shortcut
-		if (shortcut && shortcut.match(regex)) {
-			//get range from shortcut
-			data = regex.exec(shortcut);
-			group = data[1];
-			range = data[2].split(splitter);
-			//range
-			from = parseInt(range[0], 10);
-			to = parseInt(range[1], 10);
-			//iterate range
-			for (i = from; i <= to; i++) {
-				shortcuts.push([shortcut.replace(group, i), i, from]);
-			}
-			//error
-			if (shortcuts.length === 0) {
-				throw "Regex shortcut do not match any handler.";
-			}
-			//return
-			return shortcuts;
+		//get range from shortcut
+		data = regex.exec(shortcut);
+		group = data[1];
+		range = data[2].split(splitter);
+		//range
+		from = parseInt(range[0], 10);
+		to = parseInt(range[1], 10);
+		//iterate range
+		for (i = from; i <= to; i++) {
+			shortcuts.push([shortcut.replace(group, i), i, from]);
 		}
+		//error
+		if (shortcuts.length === 0) {
+			throw "Regex shortcut do not match any handler.";
+		}
+		//return
+		return shortcuts;
+	}
+
+	/**
+	 * Resolve single shortcut
+	 * @param {string} shortcut
+	 * @return {Array}
+	 */
+	function resolveSingleShortcut(shortcut) {
+		var shortcuts = [];
+
 		//add shortcut
 		shortcuts.push([shortcut || null, -1, -1]);
 		//normal shortcut

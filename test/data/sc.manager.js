@@ -81,6 +81,43 @@ describe("shortcuts - manager", function () {
 		expect(handlers.one).toHaveBeenCalledTimes(2);
 	});
 
+	it("register and fire multiple shortcut", function () {
+		shortcutManagerOne.on("Ctrl+B, Ctrl+C", handlers.one);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+B"]);
+		expect(handlers.one).toHaveBeenCalledTimes(1);
+		expect(handlers.one).toHaveBeenCalledWith("ctrl+b", -1, -1);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+C"]);
+		expect(handlers.one).toHaveBeenCalledTimes(2);
+		expect(handlers.one).toHaveBeenCalledWith("ctrl+c", -1, -1);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+0"]);
+		expect(handlers.one).toHaveBeenCalledTimes(2);
+	});
+
+	it("register and fire multiple shortcut with regex", function () {
+		shortcutManagerOne.on("Ctrl+B, Ctrl+[0..2]", handlers.one);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+C"]);
+		expect(handlers.one).not.toHaveBeenCalled();
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+B"]);
+		expect(handlers.one).toHaveBeenCalledTimes(1);
+		expect(handlers.one).toHaveBeenCalledWith("ctrl+b", -1, -1);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+0"]);
+		expect(handlers.one).toHaveBeenCalledTimes(2);
+		expect(handlers.one).toHaveBeenCalledWith("ctrl+0", 0, 0);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+2"]);
+		expect(handlers.one).toHaveBeenCalledTimes(3);
+		expect(handlers.one).toHaveBeenCalledWith("ctrl+2", 2, 0);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+5"]);
+		expect(handlers.one).toHaveBeenCalledTimes(3);
+	});
+
 	it("register and fire regex shortcut not from zero", function () {
 		shortcutManagerOne.on("Ctrl+[2..4]", handlers.one);
 
