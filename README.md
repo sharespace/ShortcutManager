@@ -57,7 +57,7 @@ You can turn on debug mode that is used for consoling some information about eve
 - Ctrl+Space
 - Alt+Ctrl+B
 - Alt+SHIFT+Ctrl+B
-- +
+- '+'
 - Ctrl+Enter
 - Ctrl+Return
 
