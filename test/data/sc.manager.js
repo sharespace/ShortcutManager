@@ -5,8 +5,10 @@ describe("shortcuts - manager", function () {
 	var handlers = jasmine.createSpyObj("handlers", ["one", "two", "three", "four"]),
 		context1 = {context: 1},
 		context2 = {context: 2},
+		context3 = {context: 3},
 		shortcutManagerOne = ShortcutManager.create(context1),
 		shortcutManagerTwo = ShortcutManager.create(context2),
+		shortcutManagerLayer = ShortcutManager.create(context3, "testLayer"),
 		shortcuts = {
 			"Ctrl+B": event(66, true),
 			"Ctrl+C": event(67, true),
@@ -364,5 +366,63 @@ describe("shortcuts - manager", function () {
 		expect(shortcutManagerOne.exists("ctrl+b")).toBe(true); //already normalized
 		expect(shortcutManagerOne.exists("Ctrl+B")).toBe(true); //not normalized
 		expect(shortcutManagerOne.exists("Ctrl+C")).toBe(false);
+	});
+
+	it("usage of layers - create scm with layer", function () {
+		ShortcutManager.create("ctx1", "layer1");
+		ShortcutManager.create("ctx3", document);
+		ShortcutManager.create("ctx4", window);
+		ShortcutManager.create("ctx2", document.body);
+		ShortcutManager.create("ctx5", document.createElement("div"));
+	});
+
+	it("usage of layers - shortcuts", function () {
+		var handlerOne = /** @type {Function}*/jasmine.createSpy("handlerOne"),
+			handlerTwo = /** @type {Function}*/jasmine.createSpy("handlerTwo"),
+			order = [];
+
+		handlerOne.and.callFake(function () {
+			order.push(handlerOne);
+		});
+
+		handlerTwo.and.callFake(function () {
+			order.push(handlerTwo);
+		});
+
+		shortcutManagerOne.on("Ctrl+B", handlerOne);
+		shortcutManagerLayer.on("Ctrl+B", handlerTwo);
+
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+B"]);
+		shortcutManagerLayer.activate();
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+B"]);
+		shortcutManagerLayer.deactivate();
+		simulateFire(shortcutManagerOne, shortcuts["Ctrl+B"]);
+
+		console.log(order);
+
+		expect(order.length).toBe(3);
+		expect(order[0]).toBe(handlerOne);
+		expect(order[1]).toBe(handlerTwo);
+		expect(order[2]).toBe(handlerOne);
+	});
+
+	it("usage of layers - error states", function () {
+		var errors = [];
+
+		try {
+			shortcutManagerOne.deactivate();
+		} catch (ex) {
+			errors.push(ex);
+		}
+
+		try {
+			shortcutManagerLayer.deactivate();
+		} catch (ex) {
+			errors.push(ex);
+		}
+
+		expect(errors.length).toBe(2);
+		expect(errors[0]).toBe("ShortcutManager: Can not deactivate main layer. This is invalid call of deactivate method.");
+		expect(errors[1]).toBe("ShortcutManager: Can not deactivate layer because is not an active layer.");
 	});
 });

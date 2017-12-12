@@ -18,7 +18,7 @@ Run command `npm install`
 
 ### Methods
 
-#### .create(context)
+#### .create(context, layer)
 
 It's method for creating new shortcut manager with given `context`. Context can be any object or any function. 
 It is use for manipulation with handlers. More information in section "How to use it"
@@ -28,6 +28,10 @@ It is use for manipulation with handlers. More information in section "How to us
 Register given `shortcut` and `handler` for shortcut. Shortcut format is describe in section "Shortcut formats".
 Parameter `isDefault` is used for determining default shortcut. Default shortcut is called and move to end of stack.
 There can be only one default handler for given shortcut.
+
+#### .activate()
+
+#### .deactivate()
 
 #### .normalize(shortcut)
 
