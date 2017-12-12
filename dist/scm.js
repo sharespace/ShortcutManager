@@ -558,15 +558,28 @@ SC.Normalizer = (function (SC, p) {
 SC.Manager = (function (SC, p) {
 	"use strict";
 
-	var store = new SC.Store(),
-		normalizer = new SC.Normalizer(),
-		debugMode = false;
+	var normalizer = new SC.Normalizer(),
+		debugMode = false,
+		/** @type {Object.<string, SC.Store>}*/
+		layersMap = {},
+		/** @type {Array.<SC.Store>}*/
+		layers = [],
+		store;
 
 	/**
 	 * @type {Window}
 	 * @public
 	 */
 	SC.scdefault = window;
+
+	/**
+	 * @type {Window}
+	 * @public
+	 */
+	SC.sclayer = window;
+
+	//create main store
+	store = createLayer(SC.sclayer);
 
 	/**
 	 * Manager
@@ -576,6 +589,8 @@ SC.Manager = (function (SC, p) {
 	function Manager(isStatic) {
 		/** @type {Object}*/
 		this.context = SC.scdefault;
+		/** @type {SC.Store}*/
+		this.layer = store;
 		/** @type {boolean}*/
 		this.isStatic = isStatic || false;
 	}
@@ -586,25 +601,29 @@ SC.Manager = (function (SC, p) {
 	 * @public
 	 * Create new ShortcutManager
 	 * @param {Object} context
+	 * @param {Window|Document|Element|string=} layer
 	 * @returns {Manager}
 	 */
-	p.create = function (context) {
-		return new SC.Manager().in(context);
+	p.create = function (context, layer) {
+		return new SC.Manager().in(context, layer);
 	};
 
 	/**
 	 * @public
 	 * Set context
 	 * @param {Object} context
+	 * @param {Window|Document|Element|string=} layer
 	 * @returns {Manager}
 	 */
-	p.in = function (context) {
+	p.in = function (context, layer) {
 		//noinspection JSUnresolvedVariable
 		if (this.isStatic) {
 			throw "ShortcutManager: Can not change context on static method. Use ShortcutManager.create() with right context.";
 		}
 		//set new context
 		this.context = context;
+		//set layer
+		this.layer = createLayer(layer || SC.sclayer);
 		//and return it
 		return this;
 	};
@@ -620,8 +639,56 @@ SC.Manager = (function (SC, p) {
 		var normalized = normalizer.normalize(shortcut);
 
 		//save data into store
-		store.save(normalized, this.context, handler, isDefault);
-		debug("register " + shortcut);
+		this.layer.save(normalized, this.context, handler, isDefault);
+		debug("ShortcutManager: Register " + shortcut);
+	};
+
+	/**
+	 * @public
+	 * Activate current layer
+	 **/
+	p.activate = function () {
+		var index;
+
+		//is main store layer
+		if (store === this.layer) {
+			//clear layers
+			layers = [];
+			//debug info
+			debug("ShortcutManager: Activating main layer store.");
+			return;
+		}
+		//get index in array
+		index = layers.indexOf(this.layer);
+		//not exists, add as a new layer
+		if (index === -1) {
+			layers.push(this.layer);
+
+		//remove and make it last
+		} else {
+			layers.splice(index + 1);
+		}
+	};
+
+	/**
+	 * @public
+	 * Deactivate current layer
+	 */
+	p.deactivate = function () {
+		var index;
+
+		//is main store layer, error
+		if (store === this.layer) {
+			throw "ShortcutManager: Can not deactivate main layer. This is invalid call of deactivate method.";
+		}
+		//get index in array
+		index = layers.indexOf(this.layer);
+		//not exists, error
+		if (index === -1) {
+			throw "ShortcutManager: Can not deactivate layer because is not an active layer.";
+		}
+		//remove from active
+		layers.splice(index);
 	};
 
 	/**
@@ -648,8 +715,8 @@ SC.Manager = (function (SC, p) {
 	p.remove = function (shortcut, handler) {
 		var normalized = normalizer.normalize(shortcut);
 
-		store.remove(this.context, normalized, handler);
-		debug("remove " + shortcut);
+		this.layer.remove(this.context, normalized, handler);
+		debug("ShortcutManager: Remove " + shortcut);
 	};
 
 	/**
@@ -667,7 +734,7 @@ SC.Manager = (function (SC, p) {
 
 		if (normalized) {
 			//get handlers from store
-			handlers = store.get(normalized);
+			handlers = getLayer().get(normalized);
 			//handlers exists
 			if (handlers && handlers.length) {
 				//debug mode message
@@ -716,7 +783,7 @@ SC.Manager = (function (SC, p) {
 			shortcut = normalizer.normalize(shortcut);
 		}
 		//check if exists
-		result = store.exists(shortcut);
+		result = getLayer().exists(shortcut);
 
 		//debug mode message for shortcut exists
 		if (result) {
@@ -754,6 +821,71 @@ SC.Manager = (function (SC, p) {
 		if (debugMode) {
 			console.debug(message);
 		}
+	}
+
+	/**
+	 * Create layer
+	 * @param {Element|Document|Window|string} obj
+	 * @return {SC.Store}
+	 */
+	function createLayer(obj) {
+		var name = obj;
+
+		//window layer
+		if (obj === window || obj === document) {
+			name = "[window]";
+		}
+		//window layer
+		if (obj === document.body) {
+			name = "[body]";
+		}
+		//object
+		if (typeof obj !== "string") {
+			name = path(obj);
+		}
+		//create layer if not exists
+		layersMap[name] = layersMap[name] || new SC.Store();
+		//return layer name
+		return layersMap[name];
+	}
+
+	/**
+	 * Get layer
+	 * @return {SC.Store}
+	 */
+	function getLayer() {
+		//get default layer
+		if (layers.length === 0) {
+			//get default layer from map
+			return createLayer(SC.sclayer);
+		}
+		//load last ins stack
+		return layers[layers.length - 1];
+	}
+
+	/**
+	 * Get path
+	 * @param {Element} el
+	 * @return {string|*}
+	 */
+	function path(el){
+		var id,
+			classNames,
+			nodeName = el.nodeName,
+			parent = el.parentNode;
+
+		//iterate all
+		while (parent){
+			//class name
+			classNames = parent.className ? "." + parent.className : "";
+			//id
+			id = parent.id ? "#" + parent.id : "";
+			//path
+			nodeName = parent.nodeName + id + classNames + "/" + nodeName;
+			parent = parent.parentNode;
+		}
+		//return path
+		return nodeName || el;
 	}
 
 	return Manager;
