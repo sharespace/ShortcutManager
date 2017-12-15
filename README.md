@@ -20,7 +20,8 @@ Run command `npm install`
 
 #### .create(context, layer)
 
-It's method for creating new shortcut manager with given `context`. Context can be any object or any function. 
+It's method for creating new shortcut manager with given `context` and `layer`. Context can be any object or any function.
+Layer is not required and it is used for creating modal layers of shortcuts. More information in section "SCM Layers"
 It is use for manipulation with handlers. More information in section "How to use it"
 
 #### .on(shortcut, handler, isDefault)
@@ -31,7 +32,13 @@ There can be only one default handler for given shortcut.
 
 #### .activate()
 
+Method is used for activating layer for current shortcut manager. If SCM is created without layer, activating main layer instead.
+More information in section "SCM Layers" and  in section "How to use it"
+
 #### .deactivate()
+
+Method is used for deactivating layer for current shortcut manager. If SCM is created without layer, it throw error because it is not permitted.
+More information in section "SCM Layers" and  in section "How to use it"
 
 #### .normalize(shortcut)
 
@@ -73,11 +80,18 @@ You can turn on debug mode that is used for consoling some information about eve
 - "Ctrl+C, Ctrl+D"
 - "Ctrl+C, Ctrl+Shift+[0..9]"
 
+### SCM Layers
+
+SCM layers are created for handling shortcuts in modal windows or for another contexts. You can create more shortcut managers and 
+for modal you create manager with another layer. 
+If you open modal window or context window, you can call `activate()` method on SCM in window that switch current active layer for modal window. You can bind shortcuts here and another shortcuts in another layer will not be handled.
+After closing modal window or context window, you can call `deactivate()` method on SCM in window and return to main layer.
+
 ### How to use it
 
 You can use this library in global way. There is global variable `ShortcutManager`. 
 
-#### Example 1
+#### Example 1 - simple use
 
 ```javascript
 ShortcutManager.on("Ctrl+B", function () {
@@ -86,6 +100,31 @@ ShortcutManager.on("Ctrl+B", function () {
 //domEvent = event from keydown handler
 ShortcutManager.event(domEvent);
 ShortcutManager.exists("Ctrl+B");
+```
+
+#### Example 2 - Layers
+
+```javascript
+var modal = new Window(), //for example only - will be whatever
+    scmMain = ShortcutManager.create(window),
+    scmModal = ShortcutManager.create(modal, "my-modal-window");
+
+//will be handle by "scmMain"
+ShortcutManager.event(domEvent);
+
+scmModal.activate();
+
+//will be handle by "scmModal"
+ShortcutManager.event(domEvent);
+
+scmModal.deactivate();
+
+//will be handle by "scmMain"
+ShortcutManager.event(domEvent);
+
+//you can also call activate on main and force reset all opened layers
+scmMain.activate();
+
 ```
 
 # Licence

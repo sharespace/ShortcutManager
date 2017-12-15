@@ -369,11 +369,21 @@ describe("shortcuts - manager", function () {
 	});
 
 	it("usage of layers - create scm with layer", function () {
-		ShortcutManager.create("ctx1", "layer1");
-		ShortcutManager.create("ctx3", document);
-		ShortcutManager.create("ctx4", window);
-		ShortcutManager.create("ctx2", document.body);
-		ShortcutManager.create("ctx5", document.createElement("div"));
+		expect(function () {
+			ShortcutManager.create("ctx1", "layer1");
+		}).not.toThrow();
+		expect(function () {
+			ShortcutManager.create("ctx3", document);
+		}).not.toThrow();
+		expect(function () {
+			ShortcutManager.create("ctx4", window);
+		}).not.toThrow();
+		expect(function () {
+			ShortcutManager.create("ctx2", document.body);
+		}).not.toThrow();
+		expect(function () {
+			ShortcutManager.create("ctx5", document.createElement("div"));
+		}).not.toThrow();
 	});
 
 	it("usage of layers - shortcuts", function () {
@@ -397,8 +407,6 @@ describe("shortcuts - manager", function () {
 		simulateFire(shortcutManagerOne, shortcuts["Ctrl+B"]);
 		shortcutManagerLayer.deactivate();
 		simulateFire(shortcutManagerOne, shortcuts["Ctrl+B"]);
-
-		console.log(order);
 
 		expect(order.length).toBe(3);
 		expect(order[0]).toBe(handlerOne);
